@@ -1,5 +1,4 @@
 /target/
-!.mvn/wrapper/maven-wrapper.jar
 
 ### STS ###
 .apt_generated
@@ -23,3 +22,12 @@
 /nbdist/
 /.nb-gradle/
 /build/
+
+.mwn
+mvnw
+mvnw.cmd
+
+.vscode
+wishlistbot.code-workspace
+.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
