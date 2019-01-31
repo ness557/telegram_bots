@@ -54,11 +54,17 @@ public class WishServiceImpl implements WishService {
 
     @Override
     public Wish findByLabelAndUserChatId(String label, Integer chatId) {
-        return repository.findByLabelAndUserChatId(label, chatId);
+        log.info("Finding wish by label [{}] and user chat id [{}]", label, chatId);
+        Wish wish = repository.findByLabelAndUserChatId(label, chatId);
+        log.info("Found wish [{}]", wish);
+        return wish;
     }
 
     @Override
     public List<Wish> findByUserChatId(Integer chatId) {
-        return repository.findByUserChatId(chatId);
+        log.info("Finding wishes by user chat id [{}]", chatId);
+        List<Wish> wishes = repository.findByUserChatId(chatId);
+        log.info("Found wishes {}", wishes);
+        return wishes;
     }
 }

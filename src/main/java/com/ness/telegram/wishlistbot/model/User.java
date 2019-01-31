@@ -29,7 +29,7 @@ public class User {
     @SequenceGenerator(name = "user_generator", sequenceName = "user_seq", allocationSize = 10)
     private Long id;
 
-    @Column(name = "telegram_chat_id")
+    @Column(name = "telegram_chat_id", unique = true)
     private Integer chatId;
     
     @Column(name = "state")

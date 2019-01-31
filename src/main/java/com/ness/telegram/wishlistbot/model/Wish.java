@@ -26,7 +26,7 @@ public class Wish {
     @SequenceGenerator(name = "wish_generator", sequenceName = "wish_seq", allocationSize = 50)
     private Long id;
 
-    @Column(name = "label")
+    @Column(name = "label", unique = true)
     private String label;
 
     @Column(name = "link")
