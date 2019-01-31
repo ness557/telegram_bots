@@ -1,5 +1,6 @@
 package com.ness.telegram.wishlistbot.repository;
 
+import java.util.List;
 import javax.transaction.Transactional;
 import com.ness.telegram.wishlistbot.model.User;
 import com.ness.telegram.wishlistbot.model.Wish;
@@ -10,4 +11,6 @@ import org.springframework.stereotype.Repository;
 @Transactional
 public interface WishRepository extends JpaRepository<Wish, Long>{
     Wish findByLabelAndUser(String label, User user);
+    Wish findByLabelAndUserChatId(String label, Integer chatId);
+    List<Wish> findByUserChatId(Integer chatId);
 }

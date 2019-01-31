@@ -1,5 +1,6 @@
 package com.ness.telegram.wishlistbot.service;
 
+import java.util.List;
 import com.ness.telegram.wishlistbot.model.User;
 import com.ness.telegram.wishlistbot.model.Wish;
 import com.ness.telegram.wishlistbot.repository.WishRepository;
@@ -49,5 +50,15 @@ public class WishServiceImpl implements WishService {
         Wish wish = repository.findByLabelAndUser(label, user);
         log.info("Found user [{}]", wish);
         return wish;
-    } 
+    }
+
+    @Override
+    public Wish findByLabelAndUserChatId(String label, Integer chatId) {
+        return repository.findByLabelAndUserChatId(label, chatId);
+    }
+
+    @Override
+    public List<Wish> findByUserChatId(Integer chatId) {
+        return repository.findByUserChatId(chatId);
+    }
 }

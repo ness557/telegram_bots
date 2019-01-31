@@ -1,5 +1,6 @@
 package com.ness.telegram.wishlistbot.service;
 
+import java.util.List;
 import com.ness.telegram.wishlistbot.model.User;
 import com.ness.telegram.wishlistbot.model.Wish;
 
@@ -9,4 +10,6 @@ public interface WishService {
     void delete(Long id);
     Wish get(Long id);
     Wish findByLabelAndUser(String label, User user);    
+    Wish findByLabelAndUserChatId(String label, Integer chatId);
+    List<Wish> findByUserChatId(Integer chatId);
 }
