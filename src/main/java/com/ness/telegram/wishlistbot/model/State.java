@@ -9,6 +9,8 @@ public enum State {
     DEFAULT,
     ADD_SETLABEL,
     ADD_SETLINK,
-    ADD_SETPRICE;
+    ADD_SETPRICE,
+    DELETE_CHOOSE,
+    DELETE_CONFIRM;
     
 }

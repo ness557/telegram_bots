@@ -49,6 +49,19 @@ public class TelegramBot extends TelegramLongPollingBot {
         response.setParseMode("Markdown");
 
         User user = registerAndOrGet(chatId);
+
+        if (text.equals(Command.CANCEL.getText())) {
+            if (user.getState().equals(State.DEFAULT))
+                response.setText("Nothing to cancel");
+            else {
+                user.setState(State.DEFAULT);
+                userService.save(user);
+                response.setText("Action canceled");
+            }
+            sendResponse(response);
+            return;
+        }
+
         switch (user.getState()) {
             case DEFAULT:
                 response.setText(resolveDefaultState(text, user));
@@ -76,22 +89,26 @@ public class TelegramBot extends TelegramLongPollingBot {
                 String wishLink = cacheService.getLink(chatId);
                 String wishPrice = text;
 
-                if(wishLabel == null || wishLink == null){
+                if (wishLabel == null || wishLink == null) {
                     response.setText("Whoops! Look's like I was waiting too long. Please try again.");
                 } else {
                     Wish wish = new Wish();
                     wish.setUser(user);
                     wish.setLabel(wishLabel);
 
-                    if(!wishLink.equals(Command.SKIP.getText()))
+                    if (!wishLink.equals(Command.SKIP.getText()))
                         wish.setLink(wishLink);
 
                     if (!wishPrice.equals(Command.SKIP.getText()))
                         wish.setPrice(wishPrice);
-                    
+
                     wishService.save(wish);
                     response.setText("Wish " + wishLabel + " added");
                 }
+                break;
+
+            case DELETE_CHOOSE:
+
                 break;
         }
 
@@ -116,7 +133,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                 break;
 
             case REMOVE:
-
+                result = "Enter number of wish(es) to remove (like '1' or '2 4 1')";
+                user.setState(State.DELETE_CHOOSE);
+                userService.save(user);
                 break;
 
             case HELP:
@@ -132,14 +151,20 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private String getWishesString(Long chatId) {
         List<Wish> wishes = wishService.findByUserChatId(chatId);
-        if(wishes.isEmpty())
+        if (wishes.isEmpty())
             return "You have no wishes yet";
-        
+
         StringBuilder sb = new StringBuilder();
-        wishes.stream().forEach(wish -> {
+        wishes.sort(((w1, w2) -> w1.getId().compareTo(w2.getId())));
+        Integer i = 1;
+
+        for (Wish wish : wishes) {
             String label = wish.getLabel();
             String link = wish.getLink();
             String price = wish.getPrice();
+
+            sb.append(i);
+            sb.append(". ");
 
             if (!StringUtils.isEmpty(link)) {
                 sb.append("[");
@@ -154,11 +179,12 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
             sb.append(" ");
 
-            if(!StringUtils.isEmpty(price))
+            if (!StringUtils.isEmpty(price))
                 sb.append(price);
 
             sb.append("\n");
-        });
+            i++;
+        }
         return sb.toString();
     }
 
@@ -197,11 +223,10 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private String getHelpString() {
-        return "Here is the list of available commands:\n"
-               + "/list - show your list of wishes\n"
-               + "/add - add a new wish to your list\n"
-               + "/remove - remove a wish from your wishlist\n"
-               + "/abort - break current action (while adding or removing only)\n"
-               + "/help - show your list available commands\n";
+        return "Here is the list of available commands:\n" + "/list - show your list of wishes\n"
+                + "/add - add a new wish to your list\n"
+                + "/remove - remove a wish from your wishlist\n"
+                + "/cancel - break current action (while adding or removing only)\n"
+                + "/help - show your list available commands\n";
     }
 }

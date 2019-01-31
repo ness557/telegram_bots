@@ -11,7 +11,7 @@ public enum Command {
     ADD("/add"),
     REMOVE("/remove"),
     HELP("/help"),
-    ABORT("/abort"),
+    CANCEL("/cancel"),
     SKIP("/skip"),
     ERROR("");
 
