@@ -78,6 +78,9 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private String getWishesString(Long chatId) {
         List<Wish> wishes = wishService.findByUserChatId(chatId);
+        if(wishes.isEmpty())
+            return "You have no wishes yet";
+        
         StringBuilder sb = new StringBuilder();
         wishes.stream().forEach(wish -> {
             String label = wish.getLabel();
