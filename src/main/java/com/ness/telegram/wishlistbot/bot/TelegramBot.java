@@ -144,7 +144,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                + "/list - show your list of wishes\n"
                + "/add - add a new wish to your list\n"
                + "/remove - remove a wish from your wishlist\n"
-               + "/abort - break current action (while adding or removing)"
+               + "/abort - break current action (while adding or removing only)\n"
                + "/help - show your list available commands\n";
     }
 }
