@@ -6,6 +6,9 @@ package com.ness.telegram.wishlistbot.model;
  * Default - user doing nothing
  */
 public enum State {
-    DEFAULT
+    DEFAULT,
+    ADD_SETLABEL,
+    ADD_SETLINK,
+    ADD_SETPRICE;
     
 }

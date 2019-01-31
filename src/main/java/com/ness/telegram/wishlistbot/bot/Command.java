@@ -12,6 +12,7 @@ public enum Command {
     REMOVE("/remove"),
     HELP("/help"),
     ABORT("/abort"),
+    SKIP("/skip"),
     ERROR("");
 
     @Getter

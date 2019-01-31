@@ -2,9 +2,11 @@ package com.ness.telegram.wishlistbot.bot;
 
 import java.util.List;
 import java.util.Optional;
+import com.ness.telegram.wishlistbot.model.State;
 import com.ness.telegram.wishlistbot.model.User;
 import com.ness.telegram.wishlistbot.model.Wish;
 import com.ness.telegram.wishlistbot.service.UserService;
+import com.ness.telegram.wishlistbot.service.WishAddCacheService;
 import com.ness.telegram.wishlistbot.service.WishService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,32 +35,84 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Autowired
     private WishService wishService;
 
+    @Autowired
+    private WishAddCacheService cacheService;
+
     @Override
     public void onUpdateReceived(Update update) {
         Message message = update.getMessage();
         String text = message.getText();
         Long chatId = message.getChatId();
 
+        SendMessage response = new SendMessage();
+        response.setChatId(chatId);
+        response.setParseMode("Markdown");
+
         User user = registerAndOrGet(chatId);
         switch (user.getState()) {
             case DEFAULT:
-                resolveDefaultState(text, chatId);
+                response.setText(resolveDefaultState(text, user));
+                break;
+
+            case ADD_SETLABEL:
+                user.setState(State.ADD_SETLINK);
+                userService.save(user);
+                cacheService.putLabel(chatId, text);
+                response.setText("Enter wish link (/skip to leave empty)");
+                break;
+
+            case ADD_SETLINK:
+                user.setState(State.ADD_SETPRICE);
+                userService.save(user);
+                cacheService.putLink(chatId, text);
+                response.setText("Enter wish price (/skip to leave empty)");
+                break;
+
+            case ADD_SETPRICE:
+                user.setState(State.DEFAULT);
+                userService.save(user);
+
+                String wishLabel = cacheService.getLabel(chatId);
+                String wishLink = cacheService.getLink(chatId);
+                String wishPrice = text;
+
+                if(wishLabel == null || wishLink == null){
+                    response.setText("Whoops! Look's like I was waiting too long. Please try again.");
+                } else {
+                    Wish wish = new Wish();
+                    wish.setUser(user);
+                    wish.setLabel(wishLabel);
+
+                    if(!wishLink.equals(Command.SKIP.getText()))
+                        wish.setLink(wishLink);
+
+                    if (!wishPrice.equals(Command.SKIP.getText()))
+                        wish.setPrice(wishPrice);
+                    
+                    wishService.save(wish);
+                    response.setText("Wish " + wishLabel + " added");
+                }
                 break;
         }
+
+        sendResponse(response);
     }
 
-    private void resolveDefaultState(String text, Long chatId) {
+    private String resolveDefaultState(String text, User user) {
         Command command = Command.ofText(text);
-        SendMessage response = new SendMessage();
-        response.setChatId(chatId);
+        Long chatId = user.getChatId();
+
+        String result = "";
 
         switch (command) {
             case LIST:
-                response.setText(getWishesString(chatId));
+                result = getWishesString(chatId);
                 break;
 
             case ADD:
-
+                result = "Enter wish text";
+                user.setState(State.ADD_SETLABEL);
+                userService.save(user);
                 break;
 
             case REMOVE:
@@ -66,14 +120,14 @@ public class TelegramBot extends TelegramLongPollingBot {
                 break;
 
             case HELP:
-                response.setText(getHelpString());
+                result = getHelpString();
                 break;
 
             default:
-                response.setText("Wrong command. See /help");
+                result = "Wrong command. See /help";
                 break;
         }
-        sendResponse(response);
+        return result;
     }
 
     private String getWishesString(Long chatId) {
@@ -92,14 +146,17 @@ public class TelegramBot extends TelegramLongPollingBot {
                 sb.append(label);
                 sb.append("](");
                 sb.append(link);
+                sb.append(")");
             } else {
                 sb.append("*");
                 sb.append(label);
                 sb.append("*");
             }
-
             sb.append(" ");
-            sb.append(price);
+
+            if(!StringUtils.isEmpty(price))
+                sb.append(price);
+
             sb.append("\n");
         });
         return sb.toString();
