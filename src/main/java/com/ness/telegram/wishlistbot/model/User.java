@@ -30,7 +30,7 @@ public class User {
     private Long id;
 
     @Column(name = "telegram_chat_id", unique = true)
-    private Integer chatId;
+    private Long chatId;
     
     @Column(name = "state")
     @Enumerated(EnumType.STRING)

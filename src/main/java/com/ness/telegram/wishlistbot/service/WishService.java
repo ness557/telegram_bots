@@ -10,6 +10,6 @@ public interface WishService {
     void delete(Long id);
     Wish get(Long id);
     Wish findByLabelAndUser(String label, User user);    
-    Wish findByLabelAndUserChatId(String label, Integer chatId);
-    List<Wish> findByUserChatId(Integer chatId);
+    Wish findByLabelAndUserChatId(String label, Long chatId);
+    List<Wish> findByUserChatId(Long chatId);
 }

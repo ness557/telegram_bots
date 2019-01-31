@@ -32,6 +32,9 @@ public class Wish {
     @Column(name = "link")
     private String link;
 
+    @Column(name = "price")
+    private String price;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn
     private User user;

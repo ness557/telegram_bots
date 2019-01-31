@@ -1,5 +1,6 @@
 package com.ness.telegram.wishlistbot.service;
 
+import java.util.Optional;
 import com.ness.telegram.wishlistbot.model.User;
 import com.ness.telegram.wishlistbot.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,9 +37,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findByChatId(Integer chatId) {
+    public Optional<User> findByChatId(Long chatId) {
         log.info("Finding user by chat id [{}]", chatId);
-        User user = repository.findByChatId(chatId);
+        Optional<User> user = repository.findByChatId(chatId);
         log.info("Found user [{}]", user);
         return user;
     }

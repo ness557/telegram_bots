@@ -11,6 +11,6 @@ import org.springframework.stereotype.Repository;
 @Transactional
 public interface WishRepository extends JpaRepository<Wish, Long>{
     Wish findByLabelAndUser(String label, User user);
-    Wish findByLabelAndUserChatId(String label, Integer chatId);
-    List<Wish> findByUserChatId(Integer chatId);
+    Wish findByLabelAndUserChatId(String label, Long chatId);
+    List<Wish> findByUserChatId(Long chatId);
 }

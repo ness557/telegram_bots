@@ -53,7 +53,7 @@ public class WishServiceImpl implements WishService {
     }
 
     @Override
-    public Wish findByLabelAndUserChatId(String label, Integer chatId) {
+    public Wish findByLabelAndUserChatId(String label, Long chatId) {
         log.info("Finding wish by label [{}] and user chat id [{}]", label, chatId);
         Wish wish = repository.findByLabelAndUserChatId(label, chatId);
         log.info("Found wish [{}]", wish);
@@ -61,7 +61,7 @@ public class WishServiceImpl implements WishService {
     }
 
     @Override
-    public List<Wish> findByUserChatId(Integer chatId) {
+    public List<Wish> findByUserChatId(Long chatId) {
         log.info("Finding wishes by user chat id [{}]", chatId);
         List<Wish> wishes = repository.findByUserChatId(chatId);
         log.info("Found wishes {}", wishes);
