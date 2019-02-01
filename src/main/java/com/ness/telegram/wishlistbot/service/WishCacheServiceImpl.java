@@ -5,12 +5,12 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 @Service
-public class WishAddCacheServiceImpl implements WishAddCacheService {
+public class WishCacheServiceImpl implements WishCacheService {
 
     private Map<Long, String> names;
     private Map<Long, String> links;
 
-    public WishAddCacheServiceImpl(){
+    public WishCacheServiceImpl(){
         names = new HashMap<>();
         links = new HashMap<>();
     }
