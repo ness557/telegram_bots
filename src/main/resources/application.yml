@@ -1,6 +1,6 @@
 spring: 
   profiles:
-    active: dev
+    active: ${SPRING_BOOT_PROFILE}
 
 # https://devcenter.heroku.com/articles/config-vars
 telegram:
