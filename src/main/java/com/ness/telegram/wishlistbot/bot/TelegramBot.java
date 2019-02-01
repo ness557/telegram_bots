@@ -68,6 +68,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         switch (command) {
             case LIST:
                 response.setText(getWishesString(chatId));
+                response.disableWebPagePreview();
                 user.setState(State.DEFAULT);
                 userService.save(user);
                 break;
