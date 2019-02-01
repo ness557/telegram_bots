@@ -11,6 +11,5 @@ public enum State {
     ADD_SETLINK,
     ADD_SETPRICE,
     DELETE_CHOOSE,
-    DELETE_CONFIRM;
-    
+    DELETE_CONFIRM;   
 }
