@@ -9,6 +9,7 @@ import lombok.Getter;
 public enum Command {
     LIST("/list"),
     ADD("/add"),
+    EDIT("/edit"),
     REMOVE("/remove"),
     HELP("/help"),
     CANCEL("/cancel"),

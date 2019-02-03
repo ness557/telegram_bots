@@ -4,14 +4,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import com.ness.telegram.wishlistbot.model.State;
 import com.ness.telegram.wishlistbot.model.User;
 import com.ness.telegram.wishlistbot.model.Wish;
 import com.ness.telegram.wishlistbot.service.UserService;
-import com.ness.telegram.wishlistbot.service.WishCacheService;
+import com.ness.telegram.wishlistbot.service.WishAddCacheService;
 import com.ness.telegram.wishlistbot.service.WishDeleteCacheService;
+import com.ness.telegram.wishlistbot.service.WishEditCacheService;
 import com.ness.telegram.wishlistbot.service.WishService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.NumberUtils;
@@ -46,10 +49,14 @@ public class TelegramBot extends TelegramLongPollingBot {
     private WishService wishService;
 
     @Autowired
-    private WishCacheService cacheAddService;
+    @Qualifier("wishAddCacheServiceImpl")
+    private WishAddCacheService cacheAddService;
 
     @Autowired
     private WishDeleteCacheService cacheDeleteService;
+
+    @Autowired
+    private WishEditCacheService cacheEditService;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -76,6 +83,12 @@ public class TelegramBot extends TelegramLongPollingBot {
             case ADD:
                 response.setText("Enter wish text");
                 user.setState(State.ADD_SETLABEL);
+                userService.save(user);
+                break;
+
+            case EDIT:
+                response.setText("Enter number of wish to edit");
+                user.setState(State.EDIT_CHOOSE);
                 userService.save(user);
                 break;
 
@@ -144,102 +157,215 @@ public class TelegramBot extends TelegramLongPollingBot {
                 String wishLink = cacheAddService.getLink(chatId);
                 String wishPrice = text;
 
-                // cache was cleaned earlier than user entered last value
-                if (wishLabel == null || wishLink == null) {
-                    responseString = EMPTY_CACHE;
-
-                } else {
-                    Wish wish = new Wish();
-                    wish.setUser(user);
-                    wish.setLabel(wishLabel);
-
-                    // user entered /skip command
-                    if (!wishLink.equals(Command.SKIP.getText()))
-                        wish.setLink(wishLink);
-
-                    // user entered /skip command
-                    if (!wishPrice.equals(Command.SKIP.getText()))
-                        wish.setPrice(wishPrice);
-
-                    wishService.save(wish);
-                    responseString = "Wish " + wishLabel + " added";
-                }
+                responseString = addWish(wishLabel, wishLink, wishPrice, user);
                 break;
 
             case DELETE_CHOOSE:
-                String error = "Please specify existing wish number(s) in format '1' or '1 2 3'\n"
-                        + "use " + Command.CANCEL.getText() + " to abort deleting";
-                try {
-
-                    // get list of wish indexes choosed to delete by user
-                    List<Integer> items = new ArrayList<>();
-                    for (String str : text.split(" ")) {
-                        items.add(NumberUtils.parseNumber(str, Integer.class));
-                    }
-
-                    // got empty string (somehow)
-                    if (items.isEmpty())
-                        responseString = error;
-
-                    // get all user's wishes
-                    List<Wish> wishes = wishService.findByUserChatId(chatId);
-                    // and sorting them by id
-                    wishes.sort((w1, w2) -> w1.getId().compareTo(w2.getId()));
-
-                    // get list of wishes to delete
-                    List<Wish> wishesToDelete = new ArrayList<>();
-                    for (Integer itemNumber : items)
-                        wishesToDelete.add(wishes.get(itemNumber - 1));
-
-                    // save them to cache
-                    cacheDeleteService.putWishes(chatId, wishesToDelete);
-
-                    user.setState(State.DELETE_CONFIRM);
-                    userService.save(user);
-
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("Are you sure you want to delete theese wishes:\n");
-                    wishesToDelete.stream().forEach(w -> sb.append(w.getLabel()).append("\n"));
-                    responseString = sb.toString();
-
-                    response.setReplyMarkup(getConfirmKeyboard());
-
-                } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
-                    responseString = error;
-                }
+                responseString = chooseToDelete(text, user, response);
                 break;
 
             case DELETE_CONFIRM:
+                responseString = confirmDelete(text, user);
+                break;
 
-                switch (text) {
-                    case "Yes":
-                        user.setState(State.DEFAULT);
-                        userService.save(user);
+            case EDIT_CHOOSE:
 
-                        // get all user's wishes and delete
-                        List<Wish> wishes = cacheDeleteService.getWishes(chatId);
-                        wishes.forEach(w -> wishService.delete(w.getId()));
+                responseString = chooseToEdit(text, user);
+                break;
 
-                        responseString = "Ok. All is done. You can check it with "
-                                + Command.LIST.getText() + " command";
-                        break;
+            case EDIT_SETLABEL:
+                responseString = editLabel(text, user);
+                break;
 
-                    case "No":
-                        user.setState(State.DEFAULT);
-                        userService.save(user);
-                        responseString = "Ok. I did nothing";
-                        break;
+            case EDIT_SETLINK:
+                responseString = editLink(text, user);
+                break;
 
-                    default:
-
-                        responseString = "Sorry, can't recognise. Please try again";
-                        response.setReplyMarkup(getConfirmKeyboard());
-                        break;
-                }
-
+            case EDIT_SETPRICE:
+                responseString = editPrice(text, user);
                 break;
         }
         response.setText(responseString);
+    }
+
+    private String chooseToEdit(String text, User user) {
+        Long chatId = user.getChatId();
+        String error_edit = "Please specify existing wish nubmer (like '1' or '3')\n" + "use "
+                + Command.CANCEL.getText() + " to abort editing";
+
+        try {
+            Integer wishNumber = NumberUtils.parseNumber(text, Integer.class);
+            List<Wish> wishes = wishService.findByUserChatId(chatId);
+            Wish wish = wishes.get(wishNumber - 1);
+            cacheEditService.putWish(chatId, wish);
+            user.setState(State.EDIT_SETLABEL);
+            userService.save(user);
+
+            return "Enter new wish text.\nCurrent text: " + wish.getLabel() + "\n"
+                    + Command.SKIP.getText() + " to leave current text";
+
+        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            return error_edit;
+        }
+    }
+
+    private String chooseToDelete(String text, User user, SendMessage response) {
+        Long chatId = user.getChatId();
+        String error_delete = "Please specify existing wish number(s) in format '1' or '1 2 3'\n"
+                + "use " + Command.CANCEL.getText() + " to abort deleting";
+        try {
+
+            // get list of wish indexes choosed to delete by user
+            List<Integer> items = new ArrayList<>();
+            for (String str : text.split(" ")) {
+                items.add(NumberUtils.parseNumber(str, Integer.class));
+            }
+
+            // got empty string (somehow)
+            if (items.isEmpty())
+                return error_delete;
+
+            // get all user's wishes
+            List<Wish> wishes = wishService.findByUserChatId(chatId);
+            // and sorting them by id
+            wishes.sort((w1, w2) -> w1.getId().compareTo(w2.getId()));
+            // get list of wishes to delete
+            List<Wish> wishesToDelete = new ArrayList<>();
+            for (Integer itemNumber : items)
+                wishesToDelete.add(wishes.get(itemNumber - 1));
+
+            // save their ids to cache
+            cacheDeleteService.putWishes(chatId,
+                    wishesToDelete.stream().map(w -> w.getId()).collect(Collectors.toList()));
+
+            user.setState(State.DELETE_CONFIRM);
+            userService.save(user);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("Are you sure you want to delete theese wishes:\n");
+            wishesToDelete.stream().forEach(w -> sb.append(w.getLabel()).append("\n"));
+
+            response.setReplyMarkup(getConfirmKeyboard());
+            return sb.toString();
+        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            return error_delete;
+        }
+    }
+
+    private String editLabel(String text, User user) {
+        Long chatId = user.getChatId();
+        Wish wish = cacheEditService.getWish(chatId);
+
+        if (wish == null) {
+            user.setState(State.DEFAULT);
+            userService.save(user);
+            return EMPTY_CACHE;
+        }
+
+        cacheEditService.putLabel(chatId, text);
+        user.setState(State.EDIT_SETLINK);
+        userService.save(user);
+
+        String oldValue = wish.getLink();
+        if (oldValue == null)
+            oldValue = "Empty";
+
+        return "Enter new wish link.\nCurrent link: " + oldValue + "\n" + Command.SKIP.getText()
+                + " to leave current link";
+    }
+
+    private String editLink(String text, User user) {
+        Long chatId = user.getChatId();
+        Wish wish = cacheEditService.getWish(chatId);
+
+        if (wish == null) {
+            user.setState(State.DEFAULT);
+            userService.save(user);
+            return EMPTY_CACHE;
+        }
+
+        cacheEditService.putLink(chatId, text);
+        user.setState(State.EDIT_SETPRICE);
+        userService.save(user);
+
+        String oldValue = wish.getPrice();
+        if (oldValue == null)
+            oldValue = "Empty";
+
+        return "Enter new wish price.\nCurrent text: " + oldValue + "\n" + Command.SKIP.getText()
+                + " to leave current price";
+    }
+
+    private String editPrice(String text, User user) {
+        Long chatId = user.getChatId();
+        Wish wish = cacheEditService.getWish(chatId);
+        String newLabel = cacheEditService.getLabel(chatId);
+        String newLink = cacheEditService.getLink(chatId);
+        String newPrice = text;
+
+        user.setState(State.DEFAULT);
+        userService.save(user);
+
+        if (wish == null || newLabel == null || newLink == null || newPrice == null)
+            return EMPTY_CACHE;
+
+        if (!newLabel.equals(Command.SKIP.getText()))
+            wish.setLabel(newLabel);
+
+        if (!newLink.equals(Command.SKIP.getText()))
+            wish.setLink(newLink);
+
+        if (!newPrice.equals(Command.SKIP.getText()))
+            wish.setPrice(newPrice);
+
+        wishService.save(wish);
+        return "Ok. The new wish is:\n" + "Name: " + wish.getLabel() + "\n" + "Link: "
+                + wish.getLink() + "\n" + "Price: " + wish.getPrice() + "\n";
+    }
+
+    private String confirmDelete(String text, User user) {
+        Long chatId = user.getChatId();
+        user.setState(State.DEFAULT);
+        userService.save(user);
+
+        List<Long> wishes = cacheDeleteService.getWishes(chatId);
+        if (wishes == null)
+            return EMPTY_CACHE;
+
+        switch (text) {
+            case "Yes":
+                // get all user's wishes and delete
+                wishes.forEach(w -> wishService.delete(w));
+                return "Ok. All is done. You can check it with " + Command.LIST.getText()
+                        + " command";
+
+            case "No":
+                return "Ok. I did nothing";
+
+            default:
+                return "Sorry, can't recognise";
+        }
+    }
+
+    private String addWish(String wishLabel, String wishLink, String wishPrice, User user) {
+
+        if (wishLabel == null || wishLink == null)
+            return EMPTY_CACHE;
+
+        Wish wish = new Wish();
+        wish.setUser(user);
+        wish.setLabel(wishLabel);
+
+        // user entered /skip command
+        if (!wishLink.equals(Command.SKIP.getText()))
+            wish.setLink(wishLink);
+
+        // user entered /skip command
+        if (!wishPrice.equals(Command.SKIP.getText()))
+            wish.setPrice(wishPrice);
+
+        wishService.save(wish);
+        return "Wish " + wishLabel + " added";
     }
 
     private ReplyKeyboardMarkup getConfirmKeyboard() {
@@ -334,8 +460,9 @@ public class TelegramBot extends TelegramLongPollingBot {
         return "Here is the list of available commands:\n" 
         + Command.LIST.getText() + " - show your list of wishes\n" 
         + Command.ADD.getText() + " - add a new wish to your list\n" 
+        + Command.EDIT.getText() + " - edit a wish\n"
         + Command.REMOVE.getText() + " - remove a wish from your wishlist\n" 
-        + Command.CANCEL.getText() + " - break current action (while adding or removing only)\n"
+        + Command.CANCEL.getText() + " - break current action (while adding, editing or removing)\n"
         + Command.HELP.getText() + " - show your list available commands\n";
     }
 }

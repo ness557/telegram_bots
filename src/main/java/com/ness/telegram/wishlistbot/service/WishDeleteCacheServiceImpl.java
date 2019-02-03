@@ -3,25 +3,24 @@ package com.ness.telegram.wishlistbot.service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.ness.telegram.wishlistbot.model.Wish;
 import org.springframework.stereotype.Service;
 
 @Service
 public class WishDeleteCacheServiceImpl implements WishDeleteCacheService {
 
-    private Map<Long, List<Wish>> wishes;
+    private Map<Long, List<Long>> wishIds;
 
     public WishDeleteCacheServiceImpl() {
-        wishes = new HashMap<>();
+        wishIds = new HashMap<>();
     }
 
     @Override
-    public void putWishes(Long chatId, List<Wish> wishes) {
-        this.wishes.put(chatId, wishes);
+    public void putWishes(Long chatId, List<Long> wishIds) {
+        this.wishIds.put(chatId, wishIds);
     }
 
     @Override
-    public List<Wish> getWishes(Long chatId) {
-        return this.wishes.get(chatId);
+    public List<Long> getWishes(Long chatId) {
+        return this.wishIds.get(chatId);
     }
 }
