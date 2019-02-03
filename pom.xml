@@ -17,6 +17,7 @@
 
   <modules>
     <module>wishlistbot</module>
+    <module>todolistbot</module>
     <!-- <module></module> -->
   </modules>
 </project>
