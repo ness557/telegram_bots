@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/wishlist_bot
+    url: jdbc:postgresql://localhost:5432/wishlist_bot?useSsl=false
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
@@ -13,5 +13,5 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         temp.use_jdbc_metadata_defaults: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true

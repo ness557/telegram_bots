@@ -24,6 +24,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -165,7 +166,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 break;
 
             case DELETE_CONFIRM:
-                responseString = confirmDelete(text, user);
+                responseString = confirmDelete(text, user, response);
                 break;
 
             case EDIT_CHOOSE:
@@ -186,27 +187,6 @@ public class TelegramBot extends TelegramLongPollingBot {
                 break;
         }
         response.setText(responseString);
-    }
-
-    private String chooseToEdit(String text, User user) {
-        Long chatId = user.getChatId();
-        String error_edit = "Please specify existing wish nubmer (like '1' or '3')\n" + "use "
-                + Command.CANCEL.getText() + " to abort editing";
-
-        try {
-            Integer wishNumber = NumberUtils.parseNumber(text, Integer.class);
-            List<Wish> wishes = wishService.findByUserChatId(chatId);
-            Wish wish = wishes.get(wishNumber - 1);
-            cacheEditService.putWish(chatId, wish);
-            user.setState(State.EDIT_SETLABEL);
-            userService.save(user);
-
-            return "Enter new wish text.\nCurrent text: " + wish.getLabel() + "\n"
-                    + Command.SKIP.getText() + " to leave current text";
-
-        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
-            return error_edit;
-        }
     }
 
     private String chooseToDelete(String text, User user, SendMessage response) {
@@ -249,6 +229,53 @@ public class TelegramBot extends TelegramLongPollingBot {
             return sb.toString();
         } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
             return error_delete;
+        }
+    }
+
+    private String confirmDelete(String text, User user, SendMessage response) {
+        Long chatId = user.getChatId();
+        user.setState(State.DEFAULT);
+        userService.save(user);
+
+        response.setReplyMarkup(new ReplyKeyboardRemove());
+
+        List<Long> wishes = cacheDeleteService.getWishes(chatId);
+        if (wishes == null)
+            return EMPTY_CACHE;
+
+        switch (text) {
+            case "Yes":
+                // get all user's wishes and delete
+                wishes.forEach(w -> wishService.delete(w));
+                return "Ok. All is done. You can check it with " + Command.LIST.getText()
+                        + " command";
+
+            case "No":
+                return "Ok. I did nothing";
+
+            default:
+                return "Sorry, can't recognise";
+        }
+    }
+
+    private String chooseToEdit(String text, User user) {
+        Long chatId = user.getChatId();
+        String error_edit = "Please specify existing wish nubmer (like '1' or '3')\n" + "use "
+                + Command.CANCEL.getText() + " to abort editing";
+
+        try {
+            Integer wishNumber = NumberUtils.parseNumber(text, Integer.class);
+            List<Wish> wishes = wishService.findByUserChatId(chatId);
+            Wish wish = wishes.get(wishNumber - 1);
+            cacheEditService.putWish(chatId, wish);
+            user.setState(State.EDIT_SETLABEL);
+            userService.save(user);
+
+            return "Enter new wish text.\nCurrent text: " + wish.getLabel() + "\n"
+                    + Command.SKIP.getText() + " to leave current text";
+
+        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            return error_edit;
         }
     }
 
@@ -321,31 +348,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         wishService.save(wish);
         return "Ok. The new wish is:\n" + "Name: " + wish.getLabel() + "\n" + "Link: "
                 + wish.getLink() + "\n" + "Price: " + wish.getPrice() + "\n";
-    }
-
-    private String confirmDelete(String text, User user) {
-        Long chatId = user.getChatId();
-        user.setState(State.DEFAULT);
-        userService.save(user);
-
-        List<Long> wishes = cacheDeleteService.getWishes(chatId);
-        if (wishes == null)
-            return EMPTY_CACHE;
-
-        switch (text) {
-            case "Yes":
-                // get all user's wishes and delete
-                wishes.forEach(w -> wishService.delete(w));
-                return "Ok. All is done. You can check it with " + Command.LIST.getText()
-                        + " command";
-
-            case "No":
-                return "Ok. I did nothing";
-
-            default:
-                return "Sorry, can't recognise";
-        }
-    }
+    } 
 
     private String addWish(String wishLabel, String wishLink, String wishPrice, User user) {
 

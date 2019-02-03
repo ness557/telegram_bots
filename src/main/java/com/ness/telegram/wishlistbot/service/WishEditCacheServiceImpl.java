@@ -12,7 +12,7 @@ public class WishEditCacheServiceImpl extends WishAddCacheServiceImpl
     private Map<Long, Wish> wishes;
     
     public WishEditCacheServiceImpl(){
-        wishes = new HashMap();
+        wishes = new HashMap<>();
     }
 
     @Override

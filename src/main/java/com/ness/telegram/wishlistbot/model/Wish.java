@@ -26,10 +26,10 @@ public class Wish {
     @SequenceGenerator(name = "wish_generator", sequenceName = "wish_seq", allocationSize = 50)
     private Long id;
 
-    @Column(name = "label", unique = true)
+    @Column(name = "label", unique = true, length = 400)
     private String label;
 
-    @Column(name = "link")
+    @Column(name = "link", length = 1000)
     private String link;
 
     @Column(name = "price")
