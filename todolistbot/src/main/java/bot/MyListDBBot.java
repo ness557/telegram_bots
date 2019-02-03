@@ -816,11 +816,11 @@ public class MyListDBBot extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        return "NessTodoListBot";
+        return env.getProperty("TELEGRAM_TODO_BOT_NAME");
     }
 
     @Override
     public String getBotToken() {
-        return "330574774:AAG4KzepsOTtody6PxVoKvqyG9jOl8081Dg";
+        return env.getProperty("TELEGRAM_TODO_BOT_TOKEN");
     }
 }
