@@ -64,7 +64,6 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         SendMessage response = new SendMessage();
         response.setChatId(chatId);
-        response.setParseMode("Markdown");
 
         User user = registerAndOrGet(chatId);
 
@@ -76,6 +75,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 response.disableWebPagePreview();
                 user.setState(State.DEFAULT);
                 userService.save(user);
+                response.setParseMode("Markdown");
                 break;
 
             case ADD:
