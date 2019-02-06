@@ -1,9 +1,6 @@
 package com.ness.telegram.wishlistbot.bot;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import com.ness.telegram.wishlistbot.model.State;
 import com.ness.telegram.wishlistbot.model.User;
@@ -266,6 +263,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         try {
             Integer wishNumber = NumberUtils.parseNumber(text, Integer.class);
             List<Wish> wishes = wishService.findByUserChatId(chatId);
+            wishes.sort(Comparator.comparing(Wish::getId));
             Wish wish = wishes.get(wishNumber - 1);
             cacheEditService.putWish(chatId, wish);
             user.setState(State.EDIT_SETLABEL);
