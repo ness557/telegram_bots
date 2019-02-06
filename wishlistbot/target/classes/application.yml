@@ -1,8 +1,0 @@
-spring: 
-  profiles:
-    active: ${SPRING_BOOT_PROFILE}
-
-# https://devcenter.heroku.com/articles/config-vars
-telegram:
-  bot_name: ${TELEGRAM_WISH_BOT_NAME}
-  api_key: ${TELEGRAM_WISH_BOT_TOKEN}
