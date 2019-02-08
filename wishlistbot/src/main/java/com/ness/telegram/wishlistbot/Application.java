@@ -17,7 +17,7 @@ public class Application {
 		try {
 			new TelegramBotsApi().registerBot(bot);
 		} catch (TelegramApiRequestException e) {
-			log.error("Error registring bot: {}", e.getMessage());
+			log.error("Error registering bot: {}", e.getMessage());
 		}
 	}
 }
