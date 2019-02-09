@@ -1,11 +1,9 @@
 package com.ness.telegram.wishlistbot.bot;
 
-import java.util.Arrays;
 import lombok.Getter;
 
-/**
- * Command
- */
+import java.util.Arrays;
+
 public enum Command {
     LIST("/list"),
     ADD("/add"),

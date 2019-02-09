@@ -7,7 +7,6 @@
 		<artifactId>bots</artifactId>
 		<version>0.1</version>
 	</parent>
-	<groupId>com.ness.telegram</groupId>
 	<artifactId>wishlistbot</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
