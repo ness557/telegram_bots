@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: ${JDBC_POSTGRESQL_ONYX_URL}
+    username: ${JDBC_POSTGRESQL_ONYX_USERNAME}
+    password: ${JDBC_POSTGRESQL_ONYX_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        temp.use_jdbc_metadata_defaults: false
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
