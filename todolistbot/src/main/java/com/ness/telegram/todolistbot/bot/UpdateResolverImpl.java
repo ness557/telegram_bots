@@ -464,7 +464,7 @@ public class UpdateResolverImpl implements UpdateResolver {
             return response;
         }
 
-        response.setText("Notes:\n" + notes);
+        response.setText(currentList.getName() + ":\n" + notes);
         response.setReplyMarkup(ReplyMarkups.notesActionsKeyboard(false));
 
         return response;
