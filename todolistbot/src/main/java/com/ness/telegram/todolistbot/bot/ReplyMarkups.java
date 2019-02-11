@@ -6,12 +6,12 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.ness.telegram.todolistbot.bot.Command.*;
 import static com.ness.telegram.todolistbot.bot.ReplyConstants.*;
+import static java.util.Arrays.asList;
 
 public class ReplyMarkups {
 
@@ -53,7 +53,7 @@ public class ReplyMarkups {
 
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
-        rows.add(Arrays.asList(new InlineKeyboardButton(ReplyConstants.BUTTON_LISTS).setCallbackData(LISTS.getText())));
+        rows.add(asList(new InlineKeyboardButton(ReplyConstants.BUTTON_LISTS).setCallbackData(LISTS.getText())));
         keyboard.setKeyboard(rows);
 
         return keyboard;
@@ -98,7 +98,7 @@ public class ReplyMarkups {
         InlineKeyboardButton listsButton = new InlineKeyboardButton(BUTTON_LISTS).setCallbackData(LISTS.getText());
         InlineKeyboardButton notesButton = new InlineKeyboardButton(BUTTON_NOTES).setCallbackData(NOTES.getText());
 
-        rows.add(Arrays.asList(listsButton, notesButton));
+        rows.add(asList(listsButton, notesButton));
 
         keyboard.setKeyboard(rows);
 
@@ -110,11 +110,11 @@ public class ReplyMarkups {
 
         List<List<InlineKeyboardButton>> rows = lists.stream()
                 .map(list ->
-                        Arrays.asList(new InlineKeyboardButton(list.getName())
+                        asList(new InlineKeyboardButton(list.getName())
                                 .setCallbackData(list.getName())))
                 .collect(Collectors.toList());
 
-        rows.add(Arrays.asList(
+        rows.add(asList(
                 new InlineKeyboardButton(ReplyConstants.BUTTON_CANCEL)
                         .setCallbackData(CANCEL.getText())));
 
@@ -128,15 +128,24 @@ public class ReplyMarkups {
 
         List<List<InlineKeyboardButton>> rows = notes.stream()
                 .map(note ->
-                        Arrays.asList(new InlineKeyboardButton(note.getText())
+                        asList(new InlineKeyboardButton(note.getText())
                                 .setCallbackData(note.getText())))
                 .collect(Collectors.toList());
 
-        rows.add(Arrays.asList(
+        rows.add(asList(
                 new InlineKeyboardButton(ReplyConstants.BUTTON_CANCEL)
                         .setCallbackData(CANCEL.getText())));
 
         keyboard.setKeyboard(rows);
+
+        return keyboard;
+    }
+
+    public static InlineKeyboardMarkup cancelButton() {
+        InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
+
+        keyboard.setKeyboard(asList(asList(new InlineKeyboardButton(ReplyConstants.BUTTON_CANCEL)
+                .setCallbackData(CANCEL.getText()))));
 
         return keyboard;
     }

@@ -484,7 +484,8 @@ public class UpdateResolverImpl implements UpdateResolver {
         EditMessageText response = new EditMessageText()
                 .setChatId(user.getChatId())
                 .setMessageId(messageId)
-                .setText(ReplyConstants.MESSAGE_ADD_LIST);
+                .setText(ReplyConstants.MESSAGE_ADD_LIST)
+                .setReplyMarkup(ReplyMarkups.cancelButton());;
 
         user.setCurrentStatement(Statement.ADDLIST);
         userService.save(user);
@@ -495,7 +496,8 @@ public class UpdateResolverImpl implements UpdateResolver {
     private BotApiMethod addNote(User user, Integer messageId) {
         EditMessageText response = new EditMessageText()
                 .setChatId(user.getChatId())
-                .setMessageId(messageId);
+                .setMessageId(messageId)
+                .setReplyMarkup(ReplyMarkups.cancelButton());;
 
         NoteList currentList = user.getCurrentList();
 
