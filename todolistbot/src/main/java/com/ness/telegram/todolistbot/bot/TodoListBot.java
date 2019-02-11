@@ -8,6 +8,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
 @Component
 @Slf4j
@@ -28,6 +29,10 @@ public class TodoListBot extends TelegramLongPollingBot {
         try {
             execute(response);
         } catch (TelegramApiException e) {
+            if(e instanceof TelegramApiRequestException){
+                log.error("Couldn't send message: {}", ((TelegramApiRequestException) e).getApiResponse());
+                return;
+            }
             log.error("Couldn't send message: {}", e.getCause().getMessage());
         }
     }

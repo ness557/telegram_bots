@@ -129,7 +129,9 @@ public class ReplyMarkups {
         List<List<InlineKeyboardButton>> rows = notes.stream()
                 .map(note ->
                         Arrays.asList(new InlineKeyboardButton(note.getText())
-                                .setCallbackData(note.getText())))
+                                .setCallbackData(note.getText().length() > 64
+                                        ? note.getText().substring(0, 63)
+                                        : note.getText())))
                 .collect(Collectors.toList());
 
         rows.add(Arrays.asList(
