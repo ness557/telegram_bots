@@ -235,6 +235,11 @@ public class UpdateResolverImpl implements UpdateResolver {
                 .setReplyMarkup(ReplyMarkups.menuKeyboard())
                 .setText(ReplyConstants.MESSAGE_NOTE_ALREADY_EXISTS);
 
+        if(text.getBytes().length > 64){
+            response.setText(ReplyConstants.MESSAGE_TOO_LONG);
+            return response;
+        }
+
         user.setCurrentStatement(Statement.DEFAULT);
         userService.save(user);
 
@@ -279,6 +284,11 @@ public class UpdateResolverImpl implements UpdateResolver {
         SendMessage response = new SendMessage()
                 .setChatId(user.getChatId())
                 .setReplyMarkup(ReplyMarkups.menuKeyboard());
+
+        if(text.getBytes().length > 64){
+            response.setText(ReplyConstants.MESSAGE_TOO_LONG);
+            return response;
+        }
 
         user.setCurrentStatement(Statement.DEFAULT);
 

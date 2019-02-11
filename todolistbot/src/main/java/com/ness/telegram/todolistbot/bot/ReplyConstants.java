@@ -16,6 +16,7 @@ public class ReplyConstants {
     public static final String MESSAGE_NOTE_ALREADY_EXISTS = "Such note already exists";
     public static final String MESSAGE_LIST_NOT_FOUND = "Such list not found";
     public static final String MESSAGE_NOTE_NOT_FOUND = "Such note not found";
+    public static final String MESSAGE_TOO_LONG = "Sorry, this name is too long. Please enter another name";
 
     public static final String BUTTON_ADD = "Add";
     public static final String BUTTON_CHOOSE = "Choose";
