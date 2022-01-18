@@ -51,7 +51,7 @@ public class UpdateResolverImpl implements UpdateResolver {
         Long chatId = message.getChatId();
 
         SendMessage response = new SendMessage();
-        response.setChatId(chatId);
+        response.setChatId(String.valueOf(chatId));
 
         User user = registerAndOrGet(chatId);
 
